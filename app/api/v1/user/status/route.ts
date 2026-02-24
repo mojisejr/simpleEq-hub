@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { auth } from "@/lib/auth";
 import { createCorsHeaders } from "@/lib/http/cors";
 import { prisma } from "@/lib/prisma";
 import type { UserStatusResponse } from "@/types/api";
@@ -26,12 +27,19 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
 
   let status: UserStatusResponse["status"] = "FREE";
 
-  if (userId || email) {
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  const resolvedUserId = session?.user?.id ?? userId;
+  const resolvedEmail = session?.user?.email ?? email;
+
+  if (resolvedUserId || resolvedEmail) {
     const user = await prisma.user.findFirst({
       where: {
         OR: [
-          userId ? { id: userId } : undefined,
-          email ? { email } : undefined,
+          resolvedUserId ? { id: resolvedUserId } : undefined,
+          resolvedEmail ? { email: resolvedEmail } : undefined,
         ].filter(Boolean) as { id?: string; email?: string }[],
       },
       select: {
