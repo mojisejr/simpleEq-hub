@@ -38,6 +38,9 @@ Admin UI → Protected API → Approve Subscription → Persist audit log
     - Server-side admin guard (session + role check)
     - Atomic approval transaction + persistent audit log
     - Callback-aware login flow for admin redirect
+- ✅ Phase 3.1 Admin Quality Gate (Testing & Reliability)
+    - Unit tests for server actions and failure paths
+    - Hard gate verified (Build/Lint/25 tests passed)
 - ⏭️ Next: Phase 4 (Bridge deployment & extension sync)
 
 ## 5) Test Suite Structure
