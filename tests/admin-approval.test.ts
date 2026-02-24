@@ -97,4 +97,62 @@ describe("approveProAndWriteAudit", () => {
     expect(update).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
   });
+
+  it("throws when user update fails and does not create audit log", async () => {
+    const findUnique = vi.fn().mockResolvedValue({
+      id: "target_3",
+      subscriptionStatus: "FREE",
+    });
+    const update = vi.fn().mockRejectedValue(new Error("update failed"));
+    const create = vi.fn().mockResolvedValue({});
+
+    await expect(
+      approveProAndWriteAudit(
+        {
+          user: {
+            findUnique,
+            update,
+          },
+          auditLog: {
+            create,
+          },
+        },
+        {
+          adminId: "admin_1",
+          targetUserId: "target_3",
+        },
+      ),
+    ).rejects.toThrow("update failed");
+
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("throws when audit log creation fails after user update", async () => {
+    const findUnique = vi.fn().mockResolvedValue({
+      id: "target_4",
+      subscriptionStatus: "FREE",
+    });
+    const update = vi.fn().mockResolvedValue({});
+    const create = vi.fn().mockRejectedValue(new Error("audit failed"));
+
+    await expect(
+      approveProAndWriteAudit(
+        {
+          user: {
+            findUnique,
+            update,
+          },
+          auditLog: {
+            create,
+          },
+        },
+        {
+          adminId: "admin_1",
+          targetUserId: "target_4",
+        },
+      ),
+    ).rejects.toThrow("audit failed");
+
+    expect(update).toHaveBeenCalledTimes(1);
+  });
 });
