@@ -108,7 +108,7 @@ describe("/api/v1/user/status route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(403);
-    expect(body).toEqual({ error: "Origin not allowed" });
+    expect(body).toEqual({ error: "Origin not allowed", code: "ORIGIN_NOT_ALLOWED" });
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("null");
   });
 
@@ -126,7 +126,26 @@ describe("/api/v1/user/status route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(403);
-    expect(body).toEqual({ error: "Origin not allowed" });
+    expect(body).toEqual({ error: "Origin not allowed", code: "ORIGIN_NOT_ALLOWED" });
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("null");
+  });
+
+  it("returns 400 for invalid email query", async () => {
+    const { GET } = await import("@/app/api/v1/user/status/route");
+
+    const request = new NextRequest("http://localhost:3000/api/v1/user/status?email=not-an-email", {
+      headers: {
+        origin: "http://localhost:3000",
+      },
+    });
+
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body).toEqual({
+      error: "Invalid query parameters",
+      code: "INVALID_QUERY",
+    });
   });
 });

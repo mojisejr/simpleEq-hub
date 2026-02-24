@@ -44,6 +44,34 @@ npm run build
 npm run lint
 ```
 
+## Phase 4.2 Extension Identity Service Contract
+
+- Endpoint: `GET /api/v1/user/status`
+- Query (optional): `userId`, `email`
+- Origin policy: Request `Origin` must be listed in `ALLOWED_EXTENSION_ORIGINS`
+
+Success response:
+
+```json
+{
+	"status": "FREE",
+	"link": "https://facebook.com/your-admin-page"
+}
+```
+
+Error responses:
+
+- `403` `{ "error": "Origin not allowed", "code": "ORIGIN_NOT_ALLOWED" }`
+- `400` `{ "error": "Invalid query parameters", "code": "INVALID_QUERY" }`
+- `500` `{ "error": "Internal server error", "code": "INTERNAL_ERROR" }`
+
+Recommended extension handling:
+
+1) If `status === "PRO"` => unlock PRO features immediately.
+2) If `status === "FREE"` and `link` exists => show Upgrade CTA.
+3) If `403` => verify Extension ID in `ALLOWED_EXTENSION_ORIGINS`.
+4) If `400/500` => show retry-safe fallback UI and log error code.
+
 ## Next Phases
 
 - Phase 2: Prisma schema + Better Auth integration + Google provider

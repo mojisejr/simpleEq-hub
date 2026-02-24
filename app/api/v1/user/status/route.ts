@@ -4,7 +4,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { createCorsHeaders, isOriginAllowed } from "@/lib/http/cors";
 import { prisma } from "@/lib/prisma";
-import type { UserStatusResponse } from "@/types/api";
+import type { ApiErrorResponse, UserStatusResponse } from "@/types/api";
 
 const querySchema = z.object({
   userId: z.string().min(1).optional(),
@@ -18,7 +18,10 @@ export const OPTIONS = (request: NextRequest): NextResponse => {
 
   if (origin && !isOriginAllowed(origin)) {
     return NextResponse.json(
-      { error: "Origin not allowed" },
+      {
+        error: "Origin not allowed",
+        code: "ORIGIN_NOT_ALLOWED",
+      } satisfies ApiErrorResponse,
       {
         status: 403,
         headers: createCorsHeaders(origin),
@@ -37,7 +40,10 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
 
   if (origin && !isOriginAllowed(origin)) {
     return NextResponse.json(
-      { error: "Origin not allowed" },
+      {
+        error: "Origin not allowed",
+        code: "ORIGIN_NOT_ALLOWED",
+      } satisfies ApiErrorResponse,
       {
         status: 403,
         headers: createCorsHeaders(origin),
@@ -45,42 +51,73 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
     );
   }
 
-  const { userId, email } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
+  const parsedQuery = querySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams));
 
-  let status: UserStatusResponse["status"] = "FREE";
-
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
-
-  const resolvedUserId = session?.user?.id ?? userId;
-  const resolvedEmail = session?.user?.email ?? email;
-
-  if (resolvedUserId || resolvedEmail) {
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          resolvedUserId ? { id: resolvedUserId } : undefined,
-          resolvedEmail ? { email: resolvedEmail } : undefined,
-        ].filter(Boolean) as { id?: string; email?: string }[],
+  if (!parsedQuery.success) {
+    return NextResponse.json(
+      {
+        error: "Invalid query parameters",
+        code: "INVALID_QUERY",
+      } satisfies ApiErrorResponse,
+      {
+        status: 400,
+        headers: createCorsHeaders(origin),
       },
-      select: {
-        subscriptionStatus: true,
-      },
-    });
-
-    if (user?.subscriptionStatus === "PRO") {
-      status = "PRO";
-    }
+    );
   }
 
-  const response: UserStatusResponse = {
-    status,
-    link: status === "FREE" ? defaultUpgradeLink : null,
-  };
+  const { userId, email } = parsedQuery.data;
 
-  return NextResponse.json(response, {
-    status: 200,
-    headers: createCorsHeaders(origin),
-  });
+  try {
+    let status: UserStatusResponse["status"] = "FREE";
+
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    const resolvedUserId = session?.user?.id ?? userId;
+    const resolvedEmail = session?.user?.email ?? email;
+
+    if (resolvedUserId || resolvedEmail) {
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            resolvedUserId ? { id: resolvedUserId } : undefined,
+            resolvedEmail ? { email: resolvedEmail } : undefined,
+          ].filter(Boolean) as { id?: string; email?: string }[],
+        },
+        select: {
+          subscriptionStatus: true,
+        },
+      });
+
+      if (user?.subscriptionStatus === "PRO") {
+        status = "PRO";
+      }
+    }
+
+    const response: UserStatusResponse = {
+      status,
+      link: status === "FREE" ? defaultUpgradeLink : null,
+    };
+
+    return NextResponse.json(response, {
+      status: 200,
+      headers: {
+        ...createCorsHeaders(origin),
+        "Cache-Control": "no-store",
+      },
+    });
+  } catch {
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        code: "INTERNAL_ERROR",
+      } satisfies ApiErrorResponse,
+      {
+        status: 500,
+        headers: createCorsHeaders(origin),
+      },
+    );
+  }
 };
