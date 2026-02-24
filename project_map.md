@@ -5,9 +5,11 @@ SimpleEq Hub คือ backend ecosystem สำหรับ Chrome Extension โ
 
 ## 2) Key Landmarks
 - `app/` — Next.js App Router (UI + route handlers)
+- `app/admin/` — Admin Cockpit UI + server actions (manual PRO approval)
 - `tests/` — test suite ของระบบ (Vitest)
 - `public/` — static assets
 - `.env.example` — ตัวแปรแวดล้อมมาตรฐานสำหรับ local/dev
+- `middleware.ts` — guard เส้นทาง `/admin/*` ระดับ request
 - `project_map.md` — แผนที่สถาปัตยกรรมและจุดนำทาง
 - `package.json` — scripts และ dependency contracts
 - `vitest.config.ts` — test runner config (jsdom + alias support)
@@ -32,7 +34,12 @@ Admin UI → Protected API → Approve Subscription → Persist audit log
 - ✅ Phase 2 Identity Engine สำเร็จ (Better Auth + Prisma 7 + Neon adapter)
 - ✅ Bridge endpoint พร้อมใช้งาน (`/api/v1/user/status`)
 - ✅ Test infrastructure พร้อมใช้งาน (Vitest + jsdom + tsconfig paths)
-- ⏭️ Next: Phase 3 (Admin Cockpit)
+- ✅ Phase 3 Admin Cockpit baseline implemented
+    - `/admin` dashboard (stat cards, email search, manual approve)
+    - Server-side admin guard + middleware gate
+    - Atomic approval transaction + persistent audit log
+    - Callback-aware login flow for admin redirect
+- ⏭️ Next: Phase 4 (Bridge deployment & extension sync)
 
 ## 5) Test Suite Structure
 - **Runner**: Vitest (`vitest`)
@@ -54,3 +61,4 @@ Admin UI → Protected API → Approve Subscription → Persist audit log
 - Better Auth + Google PKCE สำหรับ extension ต้องออกแบบ callback/cors อย่างระวัง
 - Manual payment approval ต้องเก็บ audit trail ที่ตรวจสอบย้อนหลังได้
 - CORS policy สำหรับ `chrome-extension://` ต้อง whitelist อย่างเข้ม
+- Next.js 16 แจ้ง deprecation เรื่อง `middleware.ts` ไปสู่ `proxy` ในอนาคต (ยังใช้งานได้ปัจจุบัน)

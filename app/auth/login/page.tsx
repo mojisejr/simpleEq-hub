@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 
-export default function LoginPage() {
+function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const callbackURL = searchParams.get("callbackURL") ?? "/";
 
   const handleGoogleSignIn = async () => {
     setIsSubmitting(true);
@@ -15,7 +18,7 @@ export default function LoginPage() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/",
+        callbackURL,
       });
     } catch {
       setErrorMessage("Sign-in failed. Please try again.");
@@ -41,5 +44,13 @@ export default function LoginPage() {
         {errorMessage ? <p className="mt-3 text-sm text-red-500">{errorMessage}</p> : null}
       </section>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<main className="mx-auto flex min-h-screen w-full max-w-sm items-center px-4 py-8" />}>
+      <LoginForm />
+    </Suspense>
   );
 }
