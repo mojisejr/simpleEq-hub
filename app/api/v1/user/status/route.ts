@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
-import { createCorsHeaders } from "@/lib/http/cors";
+import { createCorsHeaders, isOriginAllowed } from "@/lib/http/cors";
 import { prisma } from "@/lib/prisma";
 import type { UserStatusResponse } from "@/types/api";
 
@@ -15,6 +15,17 @@ const defaultUpgradeLink = process.env.PRO_UPGRADE_LINK ?? null;
 
 export const OPTIONS = (request: NextRequest): NextResponse => {
   const origin = request.headers.get("origin");
+
+  if (origin && !isOriginAllowed(origin)) {
+    return NextResponse.json(
+      { error: "Origin not allowed" },
+      {
+        status: 403,
+        headers: createCorsHeaders(origin),
+      },
+    );
+  }
+
   return new NextResponse(null, {
     status: 204,
     headers: createCorsHeaders(origin),
@@ -23,6 +34,17 @@ export const OPTIONS = (request: NextRequest): NextResponse => {
 
 export const GET = async (request: NextRequest): Promise<NextResponse<UserStatusResponse | { error: string }>> => {
   const origin = request.headers.get("origin");
+
+  if (origin && !isOriginAllowed(origin)) {
+    return NextResponse.json(
+      { error: "Origin not allowed" },
+      {
+        status: 403,
+        headers: createCorsHeaders(origin),
+      },
+    );
+  }
+
   const { userId, email } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
 
   let status: UserStatusResponse["status"] = "FREE";

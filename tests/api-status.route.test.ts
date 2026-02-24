@@ -27,7 +27,7 @@ describe("/api/v1/user/status route", () => {
     process.env = {
       ...originalEnv,
       PRO_UPGRADE_LINK: "https://facebook.com/simple-eq-upgrade",
-      ALLOWED_EXTENSION_ORIGINS: "http://localhost:3000",
+      ALLOWED_EXTENSION_ORIGINS: "http://localhost:3000,chrome-extension://abc123",
     };
   });
 
@@ -93,5 +93,40 @@ describe("/api/v1/user/status route", () => {
     expect(response.status).toBe(204);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("chrome-extension://abc123");
     expect(response.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+  });
+
+  it("rejects GET from disallowed origin", async () => {
+    const { GET } = await import("@/app/api/v1/user/status/route");
+
+    const request = new NextRequest("http://localhost:3000/api/v1/user/status", {
+      headers: {
+        origin: "chrome-extension://not-allowed",
+      },
+    });
+
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body).toEqual({ error: "Origin not allowed" });
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe("null");
+  });
+
+  it("rejects OPTIONS from disallowed origin", async () => {
+    const { OPTIONS } = await import("@/app/api/v1/user/status/route");
+
+    const request = new NextRequest("http://localhost:3000/api/v1/user/status", {
+      method: "OPTIONS",
+      headers: {
+        origin: "chrome-extension://not-allowed",
+      },
+    });
+
+    const response = OPTIONS(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body).toEqual({ error: "Origin not allowed" });
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe("null");
   });
 });

@@ -16,10 +16,16 @@ const readAllowedOrigins = (): Set<string> => {
 
 const allowedOrigins = readAllowedOrigins();
 
+export const isOriginAllowed = (requestOrigin: string | null): boolean => {
+  if (!requestOrigin) {
+    return false;
+  }
+
+  return allowedOrigins.has(requestOrigin);
+};
+
 export const createCorsHeaders = (requestOrigin: string | null): HeadersInit => {
-  const isChromeExtension = requestOrigin?.startsWith("chrome-extension://") ?? false;
-  const isConfiguredOrigin = requestOrigin ? allowedOrigins.has(requestOrigin) : false;
-  const allowOrigin = isChromeExtension || isConfiguredOrigin ? (requestOrigin ?? "null") : "null";
+  const allowOrigin = requestOrigin && isOriginAllowed(requestOrigin) ? requestOrigin : "null";
 
   return {
     "Access-Control-Allow-Origin": allowOrigin,
