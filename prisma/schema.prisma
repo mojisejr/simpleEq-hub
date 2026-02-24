@@ -5,10 +5,105 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../lib/generated/prisma"
+  provider   = "prisma-client-js"
+  engineType = "binary"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum SubscriptionStatus {
+  FREE
+  PRO
+}
+
+enum AuditAction {
+  APPROVE_SUBSCRIPTION
+  REVOKE_SUBSCRIPTION
+  UPDATE_ROLE
+}
+
+model User {
+  id                 String             @id @default(cuid())
+  name               String?
+  email              String             @unique
+  emailVerified      Boolean            @default(false)
+  image              String?
+  role               UserRole           @default(USER)
+  subscriptionStatus SubscriptionStatus @default(FREE)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  accounts           Account[]
+  sessions           Session[]
+  adminAuditLogs     AuditLog[]         @relation("AdminAuditLogs")
+  targetAuditLogs    AuditLog[]         @relation("TargetAuditLogs")
+}
+
+model Account {
+  id                      String    @id @default(cuid())
+  accountId               String
+  providerId              String
+  userId                  String
+  accessToken             String?
+  refreshToken            String?
+  idToken                 String?
+  accessTokenExpiresAt    DateTime?
+  refreshTokenExpiresAt   DateTime?
+  scope                   String?
+  password                String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@unique([providerId, accountId])
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  expiresAt  DateTime
+  ipAddress  String?
+  userAgent  String?
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+}
+
+model AuditLog {
+  id           String      @id @default(cuid())
+  adminId      String
+  targetUserId String
+  action       AuditAction
+  note         String?
+  createdAt    DateTime    @default(now())
+
+  admin        User        @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: Restrict)
+  targetUser   User        @relation("TargetAuditLogs", fields: [targetUserId], references: [id], onDelete: Restrict)
+
+  @@index([adminId])
+  @@index([targetUserId])
 }
