@@ -16,6 +16,13 @@ Chrome Extension → Next.js API (`/api/*`) → Auth/Session Layer → Database 
 Admin Cockpit จะใช้ flow เดียวกันแต่สิทธิ์สูงกว่า:
 Admin UI → Protected API → Approve Subscription → Persist audit log
 
+## 🔌 Connected Clients (The Body)
+- **SimpleEq Extension**: [projects/SimpleEq](projects/SimpleEq)
+    - **Integration**: REST API via `fetch`
+    - **Auth**: Better Auth (PKCE) / Session Cookie
+    - **CORS Role**: Next.js must whitelist extension ID.
+    - **Contract**: extension calls `/api/v1/user/status` to determine feature access.
+
 ## 4) Current Territory (Phase 1)
 - ✅ Next.js + TypeScript + Tailwind + ESLint scaffolding สำเร็จ
 - ✅ Foundation dependencies ติดตั้งแล้ว (`prisma`, `@prisma/client`, `better-auth`, `zod`, `lucide-react`)
