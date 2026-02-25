@@ -66,11 +66,17 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   const query = (params.q ?? "").trim();
 
-  const [totalUsers, totalProUsers, users, auditLogs] = await Promise.all([
+  const [totalUsers, totalProUsers, waitingApprovalUsers, users, auditLogs] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({
       where: {
         subscriptionStatus: "PRO",
+      },
+    }),
+    prisma.user.count({
+      where: {
+        subscriptionStatus: "FREE",
+        hasOnboarded: true,
       },
     }),
     prisma.user.findMany({
@@ -88,6 +94,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         name: true,
         role: true,
         subscriptionStatus: true,
+        hasOnboarded: true,
         createdAt: true,
       },
       orderBy: {
@@ -127,7 +134,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <section className="rounded-2xl border border-white/10 p-6 backdrop-blur">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">Phase 3 Admin Cockpit</h1>
+            <h1 className="text-2xl font-semibold">Phase 4 Admin Cockpit</h1>
             <p className="mt-1 text-sm text-zinc-500">
               Manage PRO approvals manually and preserve audit history. Signed in as {access.admin.email}
             </p>
@@ -142,7 +149,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">{errorText}</div>
         ) : null}
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
           <article className="rounded-2xl border border-white/10 p-4">
             <p className="text-xs uppercase tracking-wide text-zinc-500">Total Users</p>
             <p className="mt-2 text-3xl font-semibold">{totalUsers}</p>
@@ -150,6 +157,10 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <article className="rounded-2xl border border-white/10 p-4">
             <p className="text-xs uppercase tracking-wide text-zinc-500">PRO Users</p>
             <p className="mt-2 text-3xl font-semibold">{totalProUsers}</p>
+          </article>
+          <article className="rounded-2xl border border-amber-400/30 bg-amber-500/5 p-4">
+            <p className="text-xs uppercase tracking-wide text-amber-200/80">Waiting Approval</p>
+            <p className="mt-2 text-3xl font-semibold text-amber-100">{waitingApprovalUsers}</p>
           </article>
         </div>
 
@@ -183,6 +194,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               <tbody>
                 {users.map((user) => {
                   const isPro = user.subscriptionStatus === "PRO";
+                  const isWaitingApproval = user.subscriptionStatus === "FREE" && user.hasOnboarded;
 
                   return (
                     <tr key={user.id} className="border-b border-white/10 align-top">
@@ -191,7 +203,16 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                         <p className="text-xs text-zinc-500">{user.name ?? "No name"}</p>
                       </td>
                       <td className="py-3 pr-4">{user.role}</td>
-                      <td className="py-3 pr-4">{user.subscriptionStatus}</td>
+                      <td className="py-3 pr-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span>{user.subscriptionStatus}</span>
+                          {isWaitingApproval ? (
+                            <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-200">
+                              Waiting for Approval
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
                       <td className="py-3">
                         <form action={approveProAction} className="flex items-center gap-2">
                           <input type="hidden" name="targetUserId" value={user.id} />
