@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { approveProAndWriteAudit } from "@/lib/admin-approval";
+import { approveProAndWriteAudit, type AdminApprovalTx } from "@/lib/admin-approval";
 import { requireAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
 
@@ -45,17 +45,17 @@ export const approveProAction = async (formData: FormData): Promise<void> => {
   }
 
   const note = parsed.data.note ?? "Manual approval from Admin Cockpit";
-
-  const result = await prisma.$transaction((tx) =>
+ 
+  const result = await prisma.$transaction((tx: AdminApprovalTx) =>
     approveProAndWriteAudit(tx, {
       adminId: access.admin.id,
       targetUserId: parsed.data.targetUserId,
       note,
     }),
   );
-
-  if (!result.ok) {
-    redirect("/admin?error=user_not_found");
+ 
+   if (!result.ok) {
+     redirect("/admin?error=user_not_found");
   }
 
   revalidatePath("/admin");

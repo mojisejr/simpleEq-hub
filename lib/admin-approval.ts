@@ -9,7 +9,7 @@ interface ApprovalTargetUser {
   subscriptionStatus: "FREE" | "PRO";
 }
 
-interface AdminApprovalTx {
+export interface AdminApprovalTx {
   user: {
     findUnique: (args: {
       where: {
