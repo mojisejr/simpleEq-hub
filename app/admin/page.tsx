@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { requireAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
+import { LogoutButton } from "@/components/auth/logout-button";
 
 import { approveProAction } from "./actions";
 
@@ -139,6 +140,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               Manage PRO approvals manually and preserve audit history. Signed in as {access.admin.email}
             </p>
           </div>
+          <LogoutButton callbackURL="/auth/login?callbackURL=%2Fadmin" />
         </div>
 
         {noticeText ? (
