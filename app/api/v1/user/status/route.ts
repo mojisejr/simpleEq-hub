@@ -95,7 +95,6 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
     }
 
     let status: UserStatusResponse["status"] = "FREE";
-    let hasOnboarded = false;
 
     const resolvedUserId = session.user.id ?? userId;
     const resolvedEmail = session.user.email ?? email;
@@ -110,7 +109,6 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
         },
         select: {
           subscriptionStatus: true,
-          hasOnboarded: true,
         },
       });
 
@@ -118,14 +116,13 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
         status = "PRO";
       }
 
-      hasOnboarded = user?.hasOnboarded ?? false;
     }
 
     const response: UserStatusResponse = {
       status,
       link: status === "FREE" ? defaultUpgradeLink : null,
-      onboardingRequired: status === "FREE" ? !hasOnboarded : false,
-      onboardingLink: status === "FREE" && !hasOnboarded ? defaultOnboardingLink : null,
+      onboardingRequired: status === "FREE",
+      onboardingLink: status === "FREE" ? defaultOnboardingLink : null,
     };
 
     return NextResponse.json(response, {

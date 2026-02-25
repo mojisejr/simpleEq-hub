@@ -86,7 +86,6 @@ describe("/api/v1/user/status route", () => {
       },
       select: {
         subscriptionStatus: true,
-        hasOnboarded: true,
       },
     });
   });
@@ -114,7 +113,7 @@ describe("/api/v1/user/status route", () => {
     });
   });
 
-  it("returns FREE with onboarding complete when user already onboarded", async () => {
+  it("returns FREE with onboarding required even when user already onboarded", async () => {
     getSessionMock.mockResolvedValue({
       user: {
         id: "user_003",
@@ -132,8 +131,8 @@ describe("/api/v1/user/status route", () => {
     expect(body).toEqual({
       status: "FREE",
       link: "https://facebook.com/simple-eq-upgrade",
-      onboardingRequired: false,
-      onboardingLink: null,
+      onboardingRequired: true,
+      onboardingLink: "http://localhost:3000/onboarding",
     });
   });
 
