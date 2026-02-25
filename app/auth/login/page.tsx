@@ -9,7 +9,7 @@ function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const callbackURL = searchParams.get("callbackURL") ?? "/";
+  const callbackURL = searchParams.get("callbackURL") ?? "/onboarding";
 
   const handleGoogleSignIn = async () => {
     setIsSubmitting(true);
