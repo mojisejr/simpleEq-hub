@@ -15,10 +15,28 @@ if (!googleClientId || !googleClientSecret) {
   throw new Error("Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET");
 }
 
-const trustedOrigins = (process.env.ALLOWED_EXTENSION_ORIGINS ?? "")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+const toOrigin = (value?: string): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+};
+
+const trustedOrigins = Array.from(
+  new Set([
+    ...(process.env.ALLOWED_EXTENSION_ORIGINS ?? "")
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean),
+    toOrigin(baseURL),
+    toOrigin(process.env.NEXT_PUBLIC_BETTER_AUTH_URL),
+  ].filter((origin): origin is string => Boolean(origin))),
+);
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,

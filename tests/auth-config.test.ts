@@ -29,6 +29,7 @@ describe("auth config", () => {
       ...originalEnv,
       BETTER_AUTH_SECRET: "secret",
       BETTER_AUTH_URL: "http://localhost:3000",
+      NEXT_PUBLIC_BETTER_AUTH_URL: "http://localhost:3000",
       GOOGLE_CLIENT_ID: "google-client-id",
       GOOGLE_CLIENT_SECRET: "google-client-secret",
       ALLOWED_EXTENSION_ORIGINS: "chrome-extension://abc, http://localhost:3000",
@@ -41,5 +42,22 @@ describe("auth config", () => {
     expect(config.trustedOrigins).toEqual(["chrome-extension://abc", "http://localhost:3000"]);
     expect(betterAuthMock).toHaveBeenCalledTimes(1);
     expect(prismaAdapterMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("always includes hub origin and removes duplicates", async () => {
+    process.env = {
+      ...originalEnv,
+      BETTER_AUTH_SECRET: "secret",
+      BETTER_AUTH_URL: "https://hub.example.com",
+      NEXT_PUBLIC_BETTER_AUTH_URL: "https://hub.example.com",
+      GOOGLE_CLIENT_ID: "google-client-id",
+      GOOGLE_CLIENT_SECRET: "google-client-secret",
+      ALLOWED_EXTENSION_ORIGINS: "chrome-extension://abc, https://hub.example.com,chrome-extension://abc",
+    };
+
+    const { auth } = await import("@/lib/auth");
+    const config = (auth as { options: { trustedOrigins: string[] } }).options;
+
+    expect(config.trustedOrigins).toEqual(["chrome-extension://abc", "https://hub.example.com"]);
   });
 });
