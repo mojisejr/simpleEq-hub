@@ -1,11 +1,43 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import type { Prisma } from "@prisma/client";
 
 import { requireAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
 import { LogoutButton } from "@/components/auth/logout-button";
 
 import { approveProAction } from "./actions";
+
+type AdminListUser = Prisma.UserGetPayload<{
+  select: {
+    id: true;
+    email: true;
+    name: true;
+    role: true;
+    subscriptionStatus: true;
+    hasOnboarded: true;
+    createdAt: true;
+  };
+}>;
+
+type AdminAuditLogItem = Prisma.AuditLogGetPayload<{
+  select: {
+    id: true;
+    action: true;
+    createdAt: true;
+    note: true;
+    admin: {
+      select: {
+        email: true;
+      };
+    };
+    targetUser: {
+      select: {
+        email: true;
+      };
+    };
+  };
+}>;
 
 interface AdminPageSearchParams {
   q?: string;
@@ -194,7 +226,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => {
+                {users.map((user: AdminListUser) => {
                   const isPro = user.subscriptionStatus === "PRO";
                   const isWaitingApproval = user.subscriptionStatus === "FREE" && user.hasOnboarded;
 
@@ -241,7 +273,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         <section className="mt-6 rounded-2xl border border-white/10 p-4">
           <h2 className="text-lg font-semibold">Recent Audit Logs</h2>
           <ul className="mt-3 space-y-2 text-sm">
-            {auditLogs.map((log) => (
+            {auditLogs.map((log: AdminAuditLogItem) => (
               <li key={log.id} className="rounded-xl border border-white/10 px-3 py-2">
                 <p className="font-medium">{log.action}</p>
                 <p className="text-zinc-500">
