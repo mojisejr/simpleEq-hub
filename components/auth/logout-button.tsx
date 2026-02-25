@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 
@@ -11,7 +10,6 @@ interface LogoutButtonProps {
 }
 
 export function LogoutButton({ callbackURL = "/auth/login" }: LogoutButtonProps) {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
 
@@ -20,9 +18,13 @@ export function LogoutButton({ callbackURL = "/auth/login" }: LogoutButtonProps)
       setIsLoading(true);
       setErrorText(null);
 
-      await authClient.signOut();
-      router.replace(callbackURL);
-      router.refresh();
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            window.location.href = callbackURL;
+          }
+        }
+      });
     } catch {
       setErrorText("Logout failed. Please try again.");
       setIsLoading(false);
