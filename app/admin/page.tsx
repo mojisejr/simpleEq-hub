@@ -1,6 +1,5 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import type { Prisma } from "@prisma/client";
 
 import { requireAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
@@ -8,36 +7,28 @@ import { LogoutButton } from "@/components/auth/logout-button";
 
 import { approveProAction } from "./actions";
 
-type AdminListUser = Prisma.UserGetPayload<{
-  select: {
-    id: true;
-    email: true;
-    name: true;
-    role: true;
-    subscriptionStatus: true;
-    hasOnboarded: true;
-    createdAt: true;
-  };
-}>;
+type AdminListUser = {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  subscriptionStatus: "FREE" | "PRO";
+  hasOnboarded: boolean;
+  createdAt: Date;
+};
 
-type AdminAuditLogItem = Prisma.AuditLogGetPayload<{
-  select: {
-    id: true;
-    action: true;
-    createdAt: true;
-    note: true;
-    admin: {
-      select: {
-        email: true;
-      };
-    };
-    targetUser: {
-      select: {
-        email: true;
-      };
-    };
+type AdminAuditLogItem = {
+  id: string;
+  action: string;
+  createdAt: Date;
+  note: string | null;
+  admin: {
+    email: string;
   };
-}>;
+  targetUser: {
+    email: string;
+  };
+};
 
 interface AdminPageSearchParams {
   q?: string;
