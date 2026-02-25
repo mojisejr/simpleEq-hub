@@ -27,6 +27,9 @@ describe("/api/v1/user/status route", () => {
     process.env = {
       ...originalEnv,
       PRO_UPGRADE_LINK: "https://facebook.com/simple-eq-upgrade",
+      LOGIN_LINK: "http://localhost:3000/auth/login",
+      ONBOARDING_LINK: "http://localhost:3000/onboarding",
+      BETTER_AUTH_URL: "http://localhost:3000",
       ALLOWED_EXTENSION_ORIGINS: "http://localhost:3000,chrome-extension://abc123",
     };
   });
@@ -37,7 +40,7 @@ describe("/api/v1/user/status route", () => {
     process.env = { ...originalEnv };
   });
 
-  it("returns FREE with upgrade link when session is missing", async () => {
+  it("returns ANONYMOUS with auth-required code when session is missing", async () => {
     getSessionMock.mockResolvedValue(null);
     const { GET } = await import("@/app/api/v1/user/status/route");
 
@@ -47,8 +50,11 @@ describe("/api/v1/user/status route", () => {
 
     expect(response.status).toBe(200);
     expect(body).toEqual({
-      status: "FREE",
-      link: "https://facebook.com/simple-eq-upgrade",
+      status: "ANONYMOUS",
+      code: "AUTH_REQUIRED",
+      link: "http://localhost:3000/auth/login",
+      onboardingRequired: true,
+      onboardingLink: "http://localhost:3000/onboarding",
     });
     expect(findFirstMock).not.toHaveBeenCalled();
   });
@@ -60,7 +66,7 @@ describe("/api/v1/user/status route", () => {
         email: "pro@simpleeq.dev",
       },
     });
-    findFirstMock.mockResolvedValue({ subscriptionStatus: "PRO" });
+    findFirstMock.mockResolvedValue({ subscriptionStatus: "PRO", hasOnboarded: true });
 
     const { GET } = await import("@/app/api/v1/user/status/route");
     const request = new NextRequest("http://localhost:3000/api/v1/user/status");
@@ -68,14 +74,66 @@ describe("/api/v1/user/status route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body).toEqual({ status: "PRO", link: null });
+    expect(body).toEqual({
+      status: "PRO",
+      link: null,
+      onboardingRequired: false,
+      onboardingLink: null,
+    });
     expect(findFirstMock).toHaveBeenCalledWith({
       where: {
         OR: [{ id: "user_001" }, { email: "pro@simpleeq.dev" }],
       },
       select: {
         subscriptionStatus: true,
+        hasOnboarded: true,
       },
+    });
+  });
+
+  it("returns FREE with onboarding required when user has not onboarded", async () => {
+    getSessionMock.mockResolvedValue({
+      user: {
+        id: "user_002",
+        email: "free@simpleeq.dev",
+      },
+    });
+    findFirstMock.mockResolvedValue({ subscriptionStatus: "FREE", hasOnboarded: false });
+
+    const { GET } = await import("@/app/api/v1/user/status/route");
+    const request = new NextRequest("http://localhost:3000/api/v1/user/status");
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      status: "FREE",
+      link: "https://facebook.com/simple-eq-upgrade",
+      onboardingRequired: true,
+      onboardingLink: "http://localhost:3000/onboarding",
+    });
+  });
+
+  it("returns FREE with onboarding complete when user already onboarded", async () => {
+    getSessionMock.mockResolvedValue({
+      user: {
+        id: "user_003",
+        email: "free-ready@simpleeq.dev",
+      },
+    });
+    findFirstMock.mockResolvedValue({ subscriptionStatus: "FREE", hasOnboarded: true });
+
+    const { GET } = await import("@/app/api/v1/user/status/route");
+    const request = new NextRequest("http://localhost:3000/api/v1/user/status");
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      status: "FREE",
+      link: "https://facebook.com/simple-eq-upgrade",
+      onboardingRequired: false,
+      onboardingLink: null,
     });
   });
 

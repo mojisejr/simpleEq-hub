@@ -12,6 +12,9 @@ const querySchema = z.object({
 });
 
 const defaultUpgradeLink = process.env.PRO_UPGRADE_LINK ?? null;
+const hubBaseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+const defaultLoginLink = process.env.LOGIN_LINK ?? `${hubBaseUrl}/auth/login`;
+const defaultOnboardingLink = process.env.ONBOARDING_LINK ?? `${hubBaseUrl}/onboarding`;
 
 export const OPTIONS = (request: NextRequest): NextResponse => {
   const origin = request.headers.get("origin");
@@ -69,14 +72,33 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
   const { userId, email } = parsedQuery.data;
 
   try {
-    let status: UserStatusResponse["status"] = "FREE";
-
     const session = await auth.api.getSession({
       headers: request.headers,
     });
 
-    const resolvedUserId = session?.user?.id ?? userId;
-    const resolvedEmail = session?.user?.email ?? email;
+    if (!session?.user) {
+      const anonymousResponse: UserStatusResponse = {
+        status: "ANONYMOUS",
+        code: "AUTH_REQUIRED",
+        link: defaultLoginLink,
+        onboardingRequired: true,
+        onboardingLink: defaultOnboardingLink,
+      };
+
+      return NextResponse.json(anonymousResponse, {
+        status: 200,
+        headers: {
+          ...createCorsHeaders(origin),
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+
+    let status: UserStatusResponse["status"] = "FREE";
+    let hasOnboarded = false;
+
+    const resolvedUserId = session.user.id ?? userId;
+    const resolvedEmail = session.user.email ?? email;
 
     if (resolvedUserId || resolvedEmail) {
       const user = await prisma.user.findFirst({
@@ -88,17 +110,22 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
         },
         select: {
           subscriptionStatus: true,
+          hasOnboarded: true,
         },
       });
 
       if (user?.subscriptionStatus === "PRO") {
         status = "PRO";
       }
+
+      hasOnboarded = user?.hasOnboarded ?? false;
     }
 
     const response: UserStatusResponse = {
       status,
       link: status === "FREE" ? defaultUpgradeLink : null,
+      onboardingRequired: status === "FREE" ? !hasOnboarded : false,
+      onboardingLink: status === "FREE" && !hasOnboarded ? defaultOnboardingLink : null,
     };
 
     return NextResponse.json(response, {
