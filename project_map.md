@@ -41,7 +41,13 @@ Admin UI → Protected API → Approve Subscription → Persist audit log
 - ✅ Phase 3.1 Admin Quality Gate (Testing & Reliability)
     - Unit tests for server actions and failure paths
     - Hard gate verified (Build/Lint/25 tests passed)
-- ⏭️ Next: Phase 4 (Bridge deployment & extension sync)
+- ✅ Phase 4 Unified Logout & Security Hardening
+    - Dedicated V1 extension-safe sign-out endpoint
+    - 415 CSRF fix (JSON-based eviction)
+    - Strict Cache-Control (`no-store`) middleware
+    - 40/40 tests passed (100% coverage)
+    - **Deployment Fix**: Support Vercel Postgres env fallbacks
+- ⏭️ Next: Deployment & Production Readiness Check (Vercel)
 
 ## 5) Test Suite Structure
 - **Runner**: Vitest (`vitest`)
