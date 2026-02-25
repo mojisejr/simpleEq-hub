@@ -17,7 +17,8 @@ describe("/api/v1/auth/sign-out route", () => {
   beforeEach(() => {
     process.env = {
       ...originalEnv,
-      ALLOWED_EXTENSION_ORIGINS: "http://localhost:3000,chrome-extension://abc123",
+      ALLOWED_EXTENSION_ORIGINS: "http://localhost:3000",
+      ALLOWED_EXTENSION_IDS: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     };
   });
 
@@ -33,14 +34,16 @@ describe("/api/v1/auth/sign-out route", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/auth/sign-out", {
       method: "OPTIONS",
       headers: {
-        origin: "chrome-extension://abc123",
+        origin: "chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       },
     });
 
     const response = OPTIONS(request);
 
     expect(response.status).toBe(204);
-    expect(response.headers.get("Access-Control-Allow-Origin")).toBe("chrome-extension://abc123");
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
+      "chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    );
     expect(response.headers.get("Access-Control-Allow-Methods")).toContain("POST");
   });
 
@@ -70,7 +73,7 @@ describe("/api/v1/auth/sign-out route", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/auth/sign-out", {
       method: "POST",
       headers: {
-        origin: "chrome-extension://abc123",
+        origin: "chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       },
       body: JSON.stringify({}),
     });
@@ -91,7 +94,7 @@ describe("/api/v1/auth/sign-out route", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/auth/sign-out", {
       method: "POST",
       headers: {
-        origin: "chrome-extension://abc123",
+        origin: "chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       },
       body: JSON.stringify({}),
     });

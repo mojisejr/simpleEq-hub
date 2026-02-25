@@ -1,20 +1,11 @@
+import { getConfiguredAllowedOrigins } from "@/lib/http/allowed-origins";
+
 const DEFAULT_ALLOWED_ORIGINS = ["http://localhost:3000"];
 
-const readAllowedOrigins = (): Set<string> => {
-  const rawOrigins = process.env.ALLOWED_EXTENSION_ORIGINS;
-  if (!rawOrigins) {
-    return new Set(DEFAULT_ALLOWED_ORIGINS);
-  }
-
-  const origins = rawOrigins
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0);
-
-  return new Set(origins);
-};
-
-const allowedOrigins = readAllowedOrigins();
+const allowedOrigins = new Set<string>([
+  ...DEFAULT_ALLOWED_ORIGINS,
+  ...getConfiguredAllowedOrigins(),
+]);
 
 export const isOriginAllowed = (requestOrigin: string | null): boolean => {
   if (!requestOrigin) {

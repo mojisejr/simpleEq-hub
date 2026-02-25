@@ -60,4 +60,27 @@ describe("auth config", () => {
 
     expect(config.trustedOrigins).toEqual(["chrome-extension://abc", "https://hub.example.com"]);
   });
+
+  it("derives trusted chrome-extension origin from ALLOWED_EXTENSION_IDS", async () => {
+    const extensionId = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+    process.env = {
+      ...originalEnv,
+      BETTER_AUTH_SECRET: "secret",
+      BETTER_AUTH_URL: "https://hub.example.com",
+      NEXT_PUBLIC_BETTER_AUTH_URL: "https://hub.example.com",
+      GOOGLE_CLIENT_ID: "google-client-id",
+      GOOGLE_CLIENT_SECRET: "google-client-secret",
+      ALLOWED_EXTENSION_IDS: extensionId,
+      ALLOWED_EXTENSION_ORIGINS: "",
+    };
+
+    const { auth } = await import("@/lib/auth");
+    const config = (auth as { options: { trustedOrigins: string[] } }).options;
+
+    expect(config.trustedOrigins).toEqual([
+      `chrome-extension://${extensionId}`,
+      "https://hub.example.com",
+    ]);
+  });
 });

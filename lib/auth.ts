@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 
+import { getTrustedOrigins } from "@/lib/http/allowed-origins";
 import { prisma } from "@/lib/prisma";
 
 const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
@@ -15,28 +16,7 @@ if (!googleClientId || !googleClientSecret) {
   throw new Error("Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET");
 }
 
-const toOrigin = (value?: string): string | null => {
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return new URL(value).origin;
-  } catch {
-    return null;
-  }
-};
-
-const trustedOrigins = Array.from(
-  new Set([
-    ...(process.env.ALLOWED_EXTENSION_ORIGINS ?? "")
-      .split(",")
-      .map((origin) => origin.trim())
-      .filter(Boolean),
-    toOrigin(baseURL),
-    toOrigin(process.env.NEXT_PUBLIC_BETTER_AUTH_URL),
-  ].filter((origin): origin is string => Boolean(origin))),
-);
+const trustedOrigins = getTrustedOrigins(baseURL, process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,

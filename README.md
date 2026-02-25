@@ -82,3 +82,24 @@ Recommended extension handling:
 
 - โปรเจกต์นี้ตั้งใจให้เป็น Hub แยกจาก extension เพื่อขยายระบบสมาชิกและการจ่ายเงินได้ง่ายในอนาคต
 - ดูภาพรวมสถาปัตยกรรมที่ `project_map.md`
+
+## Production Env Strategy (Fixed Extension ID)
+
+สำหรับการขายแบบลูกค้าโหลดไฟล์ extension แล้วติดตั้งเอง ให้ใช้แนวทาง Fixed ID:
+
+1) ใส่ `key` แบบคงที่ใน `manifest.json` ฝั่ง extension (ID จะนิ่งทุกเครื่อง)
+2) ตั้งค่า Hub ด้วย `ALLOWED_EXTENSION_IDS` เป็น ID 32 ตัวอักษร (ไม่ต้องใส่ prefix)
+3) ระบบจะ derive เป็น `chrome-extension://<id>` อัตโนมัติสำหรับ CORS + Better Auth trusted origins
+
+ตัวอย่าง:
+
+```dotenv
+ALLOWED_EXTENSION_IDS="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+ALLOWED_EXTENSION_ORIGINS="http://localhost:3000"
+BETTER_AUTH_URL="https://your-hub.vercel.app"
+NEXT_PUBLIC_BETTER_AUTH_URL="https://your-hub.vercel.app"
+```
+
+หมายเหตุ:
+- สามารถใช้ `ALLOWED_EXTENSION_ORIGINS` ต่อได้สำหรับ Web origins ที่ต้อง allow เพิ่มเติม
+- หากตั้งทั้งสองตัวพร้อมกัน ระบบจะรวมให้และตัดค่าซ้ำให้อัตโนมัติ
