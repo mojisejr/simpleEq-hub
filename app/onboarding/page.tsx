@@ -91,31 +91,32 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
                 </ul>
               </div>
 
-              <div className="rounded-xl border border-border bg-card/30 p-5">
+              {/* <div className="rounded-xl border border-border bg-card/30 p-5">
                 <h2 className="text-base font-semibold">Mock Payment</h2>
                 <p className="mt-2 text-sm text-muted-foreground">Scan QR (Mock Mode)</p>
 
                 <div className="mt-4 flex h-32 w-full items-center justify-center rounded-lg border border-border bg-background text-xs font-mono text-muted-foreground">
                   [ QR CODE MOCK ]
                 </div>
-              </div>
+              </div> */}
             </div>
 
             <div className="mt-8 border-t border-border pt-6">
               <h2 className="text-base font-semibold">Confirm Payment</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                After payment, click the button below or contact admin via Messenger.
+                {/* After payment, click the button below or contact admin via Messenger. */}
+                Click on the link below to make payment via Messenger. If you have any issues, please contact support via Messenger as well.
               </p>
 
               <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                <form action={acknowledgePaymentFlowAction} className="flex-1">
+                {/* <form action={acknowledgePaymentFlowAction} className="flex-1">
                   <button
                     type="submit"
                     className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                   >
                     I have paid
                   </button>
-                </form>
+                </form> */}
 
                 <a
                   href={messengerLink}
@@ -123,7 +124,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
                   rel="noopener noreferrer"
                   className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
                 >
-                  Contact Support
+                  To Messenger
                 </a>
               </div>
             </div>
