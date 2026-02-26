@@ -27,21 +27,23 @@ function LoginForm() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-sm items-center px-4 py-8">
-      <section className="w-full rounded-2xl border border-white/10 p-6 backdrop-blur">
-        <h1 className="text-xl font-semibold">SimpleEq Login</h1>
-        <p className="mt-2 text-sm text-zinc-500">Continue with Google to sync your subscription status.</p>
+    <main className="flex min-h-screen w-full items-center justify-center p-4">
+      <section className="glass-panel w-full max-w-sm rounded-xl p-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">Welcome Back</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Sign in to manage your SimpleEq subscription</p>
+        </div>
 
         <button
           type="button"
           onClick={handleGoogleSignIn}
           disabled={isSubmitting}
-          className="mt-6 w-full rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="mt-6 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting ? "Redirecting..." : "Continue with Google"}
         </button>
 
-        {errorMessage ? <p className="mt-3 text-sm text-red-500">{errorMessage}</p> : null}
+        {errorMessage ? <p className="mt-3 text-sm text-destructive text-center">{errorMessage}</p> : null}
       </section>
     </main>
   );
@@ -49,7 +51,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main className="mx-auto flex min-h-screen w-full max-w-sm items-center px-4 py-8" />}>
+    <Suspense fallback={<main className="flex min-h-screen w-full items-center justify-center p-4" />}>
       <LoginForm />
     </Suspense>
   );

@@ -1,11 +1,9 @@
 import { headers } from "next/headers";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { LogoutButton } from "@/components/auth/logout-button";
-
 import { acknowledgePaymentFlowAction } from "./actions";
 
 interface OnboardingPageSearchParams {
@@ -59,63 +57,76 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
   const isPro = resolvedUser.subscriptionStatus === "PRO";
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl items-center px-4 py-8">
-      <section className="w-full rounded-2xl border border-white/10 p-6 backdrop-blur">
-        <div className="flex justify-end">
+    <main className="flex min-h-screen w-full items-center justify-center p-4">
+      <section className="glass-panel w-full max-w-3xl rounded-2xl p-6 sm:p-8">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Onboarding</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Signed in as {resolvedUser.email}</p>
+          </div>
           <LogoutButton callbackURL="/auth/login?callbackURL=%2Fonboarding" />
         </div>
-        <h1 className="text-2xl font-semibold">SimpleEq Onboarding</h1>
-        <p className="mt-2 text-sm text-zinc-500">Login สำเร็จแล้วสำหรับ {resolvedUser.email}</p>
 
         {showReadyNotice ? (
-          <div className="mt-4 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white">
-            รับทราบการชำระเงินแล้วครับ สามารถปิดหน้านี้กลับไปใช้ Extension ได้เลย ระบบจะอัปเดตสถานะให้อัตโนมัติ
+          <div className="mb-6 rounded-lg border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-foreground">
+            Payment acknowledged. You can close this window and return to the extension. The system will update automatically.
           </div>
         ) : null}
 
         {isPro ? (
-          <div className="mt-4 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white">
-            บัญชีนี้เป็น PRO แล้ว 🎉 สามารถกลับไปใช้งาน Extension ได้ทันที
+          <div className="mb-6 rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-foreground">
+            🎉 Account is active (PRO). You can perform this flow again if needed, but you&apos;re already good to go.
           </div>
         ) : null}
 
         {!isPro ? (
           <>
-            <section className="mt-6 rounded-2xl border border-white/10 p-4">
-              <h2 className="text-lg font-semibold">วิธีใช้งานเบื้องต้น</h2>
-              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-500">
-                <li>เปิด Chrome Side Panel ของ SimpleEq</li>
-                <li>วางข้อความสมการ และกดแปลง/แสดงผล</li>
-                <li>หลังบ้านจะเปิดใช้ PRO ให้เมื่อยืนยันการชำระเงินแล้ว</li>
-              </ul>
-            </section>
-
-            <section className="mt-4 rounded-2xl border border-white/10 p-4">
-              <h2 className="text-lg font-semibold">Mock Payment</h2>
-              <p className="mt-2 text-sm text-zinc-500">สแกน QR ด้านล่างเพื่อชำระเงิน (ตัวอย่าง mock ในเฟสนี้)</p>
-
-              <div className="mt-3 flex h-48 w-full items-center justify-center rounded-xl border border-white/10 bg-zinc-950 text-sm text-zinc-300">
-                QR CODE MOCK
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="rounded-xl border border-border bg-card/30 p-5">
+                <h2 className="text-base font-semibold">How to use</h2>
+                <ul className="mt-3 list-disc space-y-2 pl-4 text-sm text-muted-foreground">
+                  <li>Open SimpleEq Chrome Extension</li>
+                  <li>Paste your equation or select text</li>
+                  <li>System will auto-upgrade to PRO upon payment confirmation</li>
+                </ul>
               </div>
 
-              <Link
-                href={messengerLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
-              >
-                ส่งสลิปผ่าน Facebook Messenger
-              </Link>
+              <div className="rounded-xl border border-border bg-card/30 p-5">
+                <h2 className="text-base font-semibold">Mock Payment</h2>
+                <p className="mt-2 text-sm text-muted-foreground">Scan QR (Mock Mode)</p>
 
-              <form action={acknowledgePaymentFlowAction} className="mt-3">
-                <button
-                  type="submit"
-                  className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium"
+                <div className="mt-4 flex h-32 w-full items-center justify-center rounded-lg border border-border bg-background text-xs font-mono text-muted-foreground">
+                  [ QR CODE MOCK ]
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 border-t border-border pt-6">
+              <h2 className="text-base font-semibold">Confirm Payment</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                After payment, click the button below or contact admin via Messenger.
+              </p>
+
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <form action={acknowledgePaymentFlowAction} className="flex-1">
+                  <button
+                    type="submit"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                  >
+                    I have paid
+                  </button>
+                </form>
+
+                <a
+                  href={messengerLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
                 >
-                  ฉันโอนแล้ว รอทีมงานเปิดใช้งาน
-                </button>
-              </form>
-            </section>
+                  Contact Support
+                </a>
+              </div>
+            </div>
           </>
         ) : null}
       </section>
