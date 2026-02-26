@@ -79,10 +79,10 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     }
 
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-3xl items-center justify-center px-4 py-8">
-        <section className="w-full rounded-2xl border border-white/10 p-6 backdrop-blur">
-          <h1 className="text-xl font-semibold">Admin access required</h1>
-          <p className="mt-2 text-sm text-zinc-500">Your account is not allowed to access this cockpit.</p>
+      <main className="flex min-h-screen w-full items-center justify-center p-4">
+        <section className="glass-panel w-full max-w-lg rounded-xl p-8 text-center">
+          <h1 className="text-xl font-semibold text-destructive">Admin access required</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Your account is not allowed to access this cockpit.</p>
         </section>
       </main>
     );
@@ -154,127 +154,149 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const errorText = resolveErrorText(params.error);
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-6xl px-4 py-8">
-      <section className="rounded-2xl border border-white/10 p-6 backdrop-blur">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <main className="mx-auto min-h-screen w-full max-w-7xl px-4 py-8">
+      <section className="glass-panel rounded-2xl p-6 sm:p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-semibold">Phase 4 Admin Cockpit</h1>
-            <p className="mt-1 text-sm text-zinc-500">
-              Manage PRO approvals manually and preserve audit history. Signed in as {access.admin.email}
+            <h1 className="text-2xl font-semibold tracking-tight">Admin Cockpit</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Manage PRO approvals and view audit logs. Signed in as <span className="text-foreground font-medium">{access.admin.email}</span>
             </p>
           </div>
           <LogoutButton callbackURL="/auth/login?callbackURL=%2Fadmin" />
         </div>
 
         {noticeText ? (
-          <div className="mt-4 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white">{noticeText}</div>
+          <div className="mb-6 rounded-lg border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-foreground">{noticeText}</div>
         ) : null}
 
         {errorText ? (
-          <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">{errorText}</div>
+          <div className="mb-6 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">{errorText}</div>
         ) : null}
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <article className="rounded-2xl border border-white/10 p-4">
-            <p className="text-xs uppercase tracking-wide text-zinc-500">Total Users</p>
-            <p className="mt-2 text-3xl font-semibold">{totalUsers}</p>
+        <div className="grid gap-4 sm:grid-cols-3 mb-8">
+          <article className="rounded-xl border border-border bg-card p-5">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total Users</p>
+            <p className="mt-2 text-3xl font-semibold text-foreground">{totalUsers}</p>
           </article>
-          <article className="rounded-2xl border border-white/10 p-4">
-            <p className="text-xs uppercase tracking-wide text-zinc-500">PRO Users</p>
-            <p className="mt-2 text-3xl font-semibold">{totalProUsers}</p>
+          <article className="rounded-xl border border-border bg-card p-5">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">PRO Users</p>
+            <p className="mt-2 text-3xl font-semibold text-primary">{totalProUsers}</p>
           </article>
-          <article className="rounded-2xl border border-amber-400/30 bg-amber-500/5 p-4">
-            <p className="text-xs uppercase tracking-wide text-amber-200/80">Waiting Approval</p>
-            <p className="mt-2 text-3xl font-semibold text-amber-100">{waitingApprovalUsers}</p>
+          <article className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-5">
+            <p className="text-xs font-medium uppercase tracking-wider text-yellow-500/80">Waiting Approval</p>
+            <p className="mt-2 text-3xl font-semibold text-yellow-500">{waitingApprovalUsers}</p>
           </article>
         </div>
 
-        <section className="mt-6 rounded-2xl border border-white/10 p-4">
-          <form className="flex flex-col gap-3 sm:flex-row" method="GET">
+        <section className="mb-8 p-1">
+          <form className="flex flex-col gap-3 sm:flex-row mb-6" method="GET">
             <input
               type="text"
               name="q"
               defaultValue={query}
-              placeholder="Search by email"
-              className="w-full rounded-xl border border-white/10 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-400"
+              placeholder="Search by email..."
+              className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring transition-all"
             />
             <button
               type="submit"
-              className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
             >
               Search
             </button>
           </form>
 
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-white/10 text-zinc-500">
-                  <th className="py-2 pr-4">Email</th>
-                  <th className="py-2 pr-4">Role</th>
-                  <th className="py-2 pr-4">Plan</th>
-                  <th className="py-2">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user: AdminListUser) => {
-                  const isPro = user.subscriptionStatus === "PRO";
-                  const isWaitingApproval = user.subscriptionStatus === "FREE" && user.hasOnboarded;
+          <div className="overflow-hidden rounded-xl border border-border">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="px-6 py-3 font-medium text-muted-foreground">User</th>
+                    <th className="px-6 py-3 font-medium text-muted-foreground">Role</th>
+                    <th className="px-6 py-3 font-medium text-muted-foreground">Status</th>
+                    <th className="px-6 py-3 font-medium text-muted-foreground">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border bg-card/30">
+                  {users.map((user: AdminListUser) => {
+                    const isPro = user.subscriptionStatus === "PRO";
+                    const isWaitingApproval = user.subscriptionStatus === "FREE" && user.hasOnboarded;
 
-                  return (
-                    <tr key={user.id} className="border-b border-white/10 align-top">
-                      <td className="py-3 pr-4">
-                        <p className="font-medium">{user.email}</p>
-                        <p className="text-xs text-zinc-500">{user.name ?? "No name"}</p>
-                      </td>
-                      <td className="py-3 pr-4">{user.role}</td>
-                      <td className="py-3 pr-4">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span>{user.subscriptionStatus}</span>
-                          {isWaitingApproval ? (
-                            <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-200">
-                              Waiting for Approval
-                            </span>
-                          ) : null}
-                        </div>
-                      </td>
-                      <td className="py-3">
-                        <form action={approveProAction} className="flex items-center gap-2">
-                          <input type="hidden" name="targetUserId" value={user.id} />
-                          <input type="hidden" name="note" value="Manual approval from admin cockpit" />
-                          <button
-                            type="submit"
-                            disabled={isPro}
-                            className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-40"
-                          >
-                            {isPro ? "Already PRO" : "Approve PRO"}
-                          </button>
-                        </form>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={user.id} className="transition-colors hover:bg-muted/30">
+                        <td className="px-6 py-4">
+                          <p className="font-medium text-foreground">{user.email}</p>
+                          <p className="text-xs text-muted-foreground">{user.name ?? "No name"}</p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center rounded-md border border-border px-2 py-1 text-xs font-medium text-muted-foreground bg-muted">
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {isPro ? (
+                              <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary border border-primary/20">
+                                PRO
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground border border-border">
+                                FREE
+                              </span>
+                            )}
+                            
+                            {isWaitingApproval ? (
+                              <span className="inline-flex items-center rounded-full bg-yellow-500/10 px-2.5 py-0.5 text-xs font-medium text-yellow-500 border border-yellow-500/20 animate-pulse">
+                                Waiting
+                              </span>
+                            ) : null}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <form action={approveProAction} className="flex items-center gap-2">
+                            <input type="hidden" name="targetUserId" value={user.id} />
+                            <input type="hidden" name="note" value="Manual approval from admin cockpit" />
+                            <button
+                              type="submit"
+                              disabled={isPro}
+                              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:text-muted-foreground"
+                            >
+                              {isPro ? "Active" : "Approve"}
+                            </button>
+                          </form>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {users.length === 0 ? (
+               <div className="p-8 text-center text-muted-foreground bg-card/30">No users found matching your query.</div>
+            ) : null}
           </div>
-
-          {users.length === 0 ? <p className="mt-4 text-sm text-zinc-500">No users found for this query.</p> : null}
         </section>
 
-        <section className="mt-6 rounded-2xl border border-white/10 p-4">
-          <h2 className="text-lg font-semibold">Recent Audit Logs</h2>
-          <ul className="mt-3 space-y-2 text-sm">
+        <section className="rounded-xl border border-border bg-card/30 p-6">
+          <h2 className="text-lg font-semibold mb-4">Recent Audit Logs</h2>
+          <div className="space-y-3">
             {auditLogs.map((log: AdminAuditLogItem) => (
-              <li key={log.id} className="rounded-xl border border-white/10 px-3 py-2">
-                <p className="font-medium">{log.action}</p>
-                <p className="text-zinc-500">
-                  {log.admin.email} → {log.targetUser.email}
-                </p>
-                <p className="text-xs text-zinc-500">{log.createdAt.toISOString()}</p>
-                {log.note ? <p className="mt-1 text-xs text-zinc-400">{log.note}</p> : null}
-              </li>
+              <div key={log.id} className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 rounded-lg border border-border bg-background/50 p-3 text-sm">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-foreground">{log.action}</span>
+                    <span className="text-xs text-muted-foreground">• {new Date(log.createdAt).toLocaleString()}</span>
+                  </div>
+                  <p className="text-muted-foreground mt-1">
+                    <span className="text-accent-foreground">{log.admin.email}</span>
+                    <span className="mx-1 text-muted-foreground">→</span>
+                    <span className="text-foreground">{log.targetUser.email}</span>
+                  </p>
+                  {log.note ? <p className="mt-1 text-xs text-muted-foreground italic border-l-2 border-border pl-2 my-1">{log.note}</p> : null}
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         </section>
       </section>
     </main>

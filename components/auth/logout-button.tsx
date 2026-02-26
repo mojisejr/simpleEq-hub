@@ -37,13 +37,13 @@ export function LogoutButton({ callbackURL = "/auth/login" }: LogoutButtonProps)
         type="button"
         onClick={handleLogout}
         disabled={isLoading}
-        className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
       >
         <LogOut className="h-3.5 w-3.5" />
         {isLoading ? "Logging out..." : "Logout"}
       </button>
 
-      {errorText ? <p className="text-xs text-red-300">{errorText}</p> : null}
+      {errorText ? <p className="text-xs text-destructive">{errorText}</p> : null}
     </div>
   );
 }
