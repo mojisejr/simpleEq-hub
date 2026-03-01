@@ -28,6 +28,7 @@ enum AuditAction {
   APPROVE_SUBSCRIPTION
   REVOKE_SUBSCRIPTION
   UPDATE_ROLE
+  MANAGE_LICENSE
 }
 
 model User {
@@ -71,6 +72,7 @@ model License {
   expiresAt  DateTime?
   grantedBy  String?
   grantedAt  DateTime  @default(now())
+  lastModifiedBy String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
