@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { LogoutButton } from "@/components/auth/logout-button";
 
 import { approveProAction } from "./actions";
+import { LicenseManager } from "./components/license-manager";
 
 type AdminListUser = {
   id: string;
@@ -15,6 +16,12 @@ type AdminListUser = {
   subscriptionStatus: "FREE" | "PRO";
   hasOnboarded: boolean;
   createdAt: Date;
+  licenses: {
+    id: string;
+    productId: string;
+    isActive: boolean;
+    expiresAt: Date | null;
+  }[];
 };
 
 type AdminAuditLogItem = {
@@ -90,12 +97,12 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   const query = (params.q ?? "").trim();
 
-  const [totalUsers, totalProUsers, waitingApprovalUsers, users, auditLogs] = await Promise.all([
+  const [totalUsers, totalProUsers, waitingApprovalUsers, users, auditLogs, products] = await Promise.all([
     prisma.user.count(),
-    prisma.user.count({
-      where: {
-        subscriptionStatus: "PRO",
-      },
+    prisma.user.count({ 
+      where: { 
+        subscriptionStatus: "PRO" 
+      } 
     }),
     prisma.user.count({
       where: {
@@ -120,6 +127,14 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         subscriptionStatus: true,
         hasOnboarded: true,
         createdAt: true,
+        licenses: {
+          select: {
+            id: true,
+            productId: true,
+            isActive: true,
+            expiresAt: true,
+          }
+        }
       },
       orderBy: {
         createdAt: "desc",
@@ -147,6 +162,16 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         createdAt: "desc",
       },
       take: 10,
+    }),
+    prisma.product.findMany({
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
+      orderBy: {
+        name: 'asc'
+      }
     }),
   ]);
 
@@ -253,17 +278,32 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <form action={approveProAction} className="flex items-center gap-2">
-                            <input type="hidden" name="targetUserId" value={user.id} />
-                            <input type="hidden" name="note" value="Manual approval from admin cockpit" />
-                            <button
-                              type="submit"
-                              disabled={isPro}
-                              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted disabled:text-muted-foreground"
-                            >
-                              {isPro ? "Active" : "Approve"}
-                            </button>
-                          </form>
+                          <div className="flex flex-col gap-2">
+                            {/* Original PRO Approve Action (Deprecated but kept for now) */}
+                            <form action={approveProAction} className="flex items-center gap-2">
+                              <input type="hidden" name="targetUserId" value={user.id} />
+                              <input type="hidden" name="note" value="Manual approval from admin cockpit" />
+                              <button
+                                type="submit"
+                                disabled={isPro}
+                                className="rounded-md bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
+                              >
+                                {isPro ? "Legacy PRO (Active)" : "Force Legacy PRO"}
+                              </button>
+                            </form>
+
+                            {/* New License Manager */}
+                            <LicenseManager 
+                              userId={user.id} 
+                              userEmail={user.email}
+                              products={products}
+                              initialLicenses={user.licenses.map(l => ({
+                                productId: l.productId,
+                                active: l.isActive,
+                                expiresAt: l.expiresAt
+                              }))}
+                            />
+                          </div>
                         </td>
                       </tr>
                     );

@@ -1,71 +1,87 @@
-# Project Map — simple-eq-hub
+# Project Map — SimpleEq Hub (The Nexus)
 
 ## 1) Philosophy
-SimpleEq Hub คือ backend ecosystem สำหรับ Chrome Extension โดยแยกความรับผิดชอบเรื่อง Auth, Subscription, Admin Approval และ API bridge ออกจาก extension เพื่อให้ระบบโตได้แบบปลอดภัยและตรวจสอบย้อนหลังได้
+**"One Identity, Many Licenses"**
+SimpleEq Hub (หรือ Nexus Core) คือ Central Command Center ที่ดูแลเรื่อง Identity, Authorization และ Licensing สำหรับ Ecosystem ทั้งหมดของ SimpleEq และ Smart-WS
+แนวคิดคือการแยก Business Logic (ใครจ่ายเงิน? ใครมีสิทธิ์?) ออกจาก Extension Logic เพื่อความปลอดภัยและความยืดหยุ่นในการ Scale สินค้าใหม่ ๆ
 
 ## 2) Key Landmarks
-- `app/` — Next.js App Router (UI + route handlers)
-- `app/admin/` — Admin Cockpit UI + server actions (manual PRO approval)
-- `tests/` — test suite ของระบบ (Vitest)
-- `public/` — static assets
-- `.env.example` — ตัวแปรแวดล้อมมาตรฐานสำหรับ local/dev
-- `project_map.md` — แผนที่สถาปัตยกรรมและจุดนำทาง
-- `package.json` — scripts และ dependency contracts
-- `vitest.config.ts` — test runner config (jsdom + alias support)
+- `app/` — Next.js App Router (UI + API Routes)
+- `app/admin/` — **The Cockpit**: ศูนย์ควบคุมสำหรับ Admin เพื่อ Activate Product, ดู Logs, และแก้ปัญหา User
+- `prisma/schema.prisma` — **The Truth**: เก็บโครงสร้างข้อมูล User, Product, License
+- `lib/discord.ts` — **The Pulse**: ระบบแจ้งเตือน Real-time เข้า Discord Hook
+- `tests/` — **The Guard**: Test Suite (Vitest) ยืนยันความถูกต้องของ Logic
 
-## 3) Data Flow (Target)
-Chrome Extension → Next.js API (`/api/*`) → Auth/Session Layer → Database (Neon + Prisma)
+## 3) Architecture & Data Flow
+```mermaid
+graph TD
+    User[User / Customer] -->|Login via Google| Nexus[SimpleEq Hub]
+    
+    subgraph Clients [Extensions & Apps]
+        SE[SimpleEq Extension] -->|Check Status| API_SE[API: /license/simple-eq]
+        SW[Smart-WS Extension] -->|Check Status| API_SW[API: /license/smart-ws]
+    end
 
-Admin Cockpit จะใช้ flow เดียวกันแต่สิทธิ์สูงกว่า:
-Admin UI → Protected API → Approve Subscription → Persist audit log
+    subgraph Core [Nexus Brain]
+        API_SE & API_SW --> DB[(Neon Database)]
+        Admin[Admin Staff] -->|Activate| Cockpit[Admin Dashboard]
+        Cockpit --> DB
+        DB -->|Audit| Logs[Audit Log]
+    end
+
+    subgraph Notification [The Pulse]
+        Register -->|Webhook| Discord[Discord #Alerts]
+        Support -->|Webhook| DiscordSupport[Discord #Support]
+    end
+```
 
 ## 🔌 Connected Clients (The Body)
-- **SimpleEq Extension**: [projects/SimpleEq](projects/SimpleEq)
-    - **Integration**: REST API via `fetch`
-    - **Auth**: Better Auth (PKCE) / Session Cookie
-    - **CORS Role**: Next.js must whitelist extension ID.
-    - **Contract**: extension calls `/api/v1/user/status` to determine feature access.
+ระบบนี้ถูกออกแบบมาให้รองรับ Client หลากหลาย:
+
+1.  **SimpleEq Extension** (Legacy & Core)
+    *   **Project**: [projects/SimpleEq](../SimpleEq)
+    *   **Status**: ✅ Connected
+    *   **Mechanism**: Session Cookie + API Check
+
+2.  **Smart-WS Extension** (New Frontier)
+    *   **Project**: [projects/Smart-WS](../Smart-WS)
+    *   **Status**: 🚧 Planning / Integration Phase
+    *   **Mechanism**: Will use the same Login Flow as SimpleEq
 
 ## 4) Current Territory
-- ✅ Next.js + TypeScript + Tailwind + ESLint scaffolding สำเร็จ
-- ✅ Foundation dependencies ติดตั้งแล้ว (`prisma`, `@prisma/client`, `better-auth`, `zod`, `lucide-react`)
-- ✅ Oracle setup baseline (`.gitignore`, `.env.example`) พร้อม
-- ✅ Phase 2 Identity Engine สำเร็จ (Better Auth + Prisma 7 + Neon adapter)
-- ✅ Bridge endpoint พร้อมใช้งาน (`/api/v1/user/status`)
-- ✅ Test infrastructure พร้อมใช้งาน (Vitest + jsdom + tsconfig paths)
-- ✅ Phase 3 Admin Cockpit baseline implemented
-    - `/admin` dashboard (stat cards, email search, manual approve)
-    - Server-side admin guard (session + role check)
-    - Atomic approval transaction + persistent audit log
-    - Callback-aware login flow for admin redirect
-- ✅ Phase 3.1 Admin Quality Gate (Testing & Reliability)
-    - Unit tests for server actions and failure paths
-    - Hard gate verified (Build/Lint/25 tests passed)
-- ✅ Phase 4 Unified Logout & Security Hardening
-    - Dedicated V1 extension-safe sign-out endpoint
-    - 415 CSRF fix (JSON-based eviction)
-    - Strict Cache-Control (`no-store`) middleware
-    - 40/40 tests passed (100% coverage)
-    - **Deployment Fix**: Support Vercel Postgres env fallbacks
-- ⏭️ Next: Deployment & Production Readiness Check (Vercel)
+- ✅ **Infrastructure**: Next.js 14, Tailwind, Prisma, Neon DB
+- ✅ **Auth Engine**: Better Auth Implemented (Google OAuth)
+- ✅ **Admin V1**: Manual Approval for "SimpleEq Pro" (Legacy Schema)
+- 🚧 **Nexus Evolution** (In Progress):
+    - [ ] **Database Migration**: เปลี่ยนจาก `subscriptionStatus` เป็น `License` Table
+    - [ ] **Multi-Product Support**: รองรับ `simple-eq`, `smart-ws` ในระบบเดียว
+    - [ ] **Master Role**: เพิ่ม Super Admin Role
+    - [ ] **Discord Webhooks**: แจ้งเตือนยอดขายและคนสมัครใหม่
 
-## 5) Test Suite Structure
-- **Runner**: Vitest (`vitest`)
-- **Config**: `vitest.config.ts`
-    - `environment: "jsdom"`
-    - `include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"]`
-    - Plugins: `@vitejs/plugin-react`, `vite-tsconfig-paths`
-- **Test Directory**: `tests/`
-    - Current baseline test: `tests/verify.test.ts`
-    - Scope: smoke check + path alias resolution (`@/`)
+## 5) Test Suite
+- **Runner**: Vitest (Unit & Integration Tests)
+- **Key Tests**:
+    - `auth.test.ts`: Login Flow & Session
+    - `admin.test.ts`: Role Guard & Approval Logic
+    - `api.test.ts`: Endpoint Response Structure
 
-## 6) Test & Quality Commands
-- `npm run test` — รันเทสต์ทั้งหมดแบบครั้งเดียว (`vitest run`)
-- `npm run test:watch` — รันเทสต์แบบ watch mode (`vitest`)
-- `npm run lint` — ตรวจคุณภาพโค้ดด้วย ESLint
-- `npm run build` — ตรวจความพร้อมระดับ production build
+## 6) Roles & Permissions Matrix
+| Role | Capabilities |
+| :--- | :--- |
+| **USER** | Login, View Own Licenses, Request Support |
+| **ADMIN** | View All Users, Activate/Revoke Licenses (Standard), View Audit Logs |
+| **MASTER** | **Delete User**, Manage Products, Revoke Critical Actions |
 
-## 7) Known Challenges
-- Better Auth + Google PKCE สำหรับ extension ต้องออกแบบ callback/cors อย่างระวัง
-- Manual payment approval ต้องเก็บ audit trail ที่ตรวจสอบย้อนหลังได้
-- CORS policy สำหรับ `chrome-extension://` ต้อง whitelist อย่างเข้ม
+## 7) Challenges & Risks
+- **Identity Complexity**: การเปลี่ยนจาก Simple Status เป็น License Table อาจทำให้ logic การเช็คสิทธิ์ซับซ้อนขึ้น ต้อง Test Case ให้แน่น
+- **Backward Compatibility**: ต้องมั่นใจว่า Extension ตัวเก่า (SimpleEq V1) ยังทำงานได้ระหว่างที่ Migration
+- **Admin Audit**: การ Activate ให้ลูกค้าแบบ Manual ต้องมี Log ที่ละเอียดมาก ๆ ป้องกันการทุจริตหรือความผิดพลาด
+
+## 8) Strategy & Roadmap
+1.  **Phase 1 (Foundation)**: ปรับ Database Schema ให้รองรับ N Products
+2.  **Phase 2 (Cockpit)**: อัปเดตหน้า Admin ให้เลือกติ๊ก Product ได้รายตัว
+3.  **Phase 3 (Pulse)**: เชื่อมต่อ Discord Webhooks เพื่อการ Monitor แบบ Real-time
+4.  **Phase 4 (Bridge)**: เชื่อมต่อ Smart-WS เข้ากับระบบ License ใหม่
+
+---
+*Last Updated: 2026-02-28 via Oracle Keeper*

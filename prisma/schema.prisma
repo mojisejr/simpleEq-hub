@@ -16,6 +16,7 @@ datasource db {
 enum UserRole {
   USER
   ADMIN
+  MASTER
 }
 
 enum SubscriptionStatus {
@@ -27,6 +28,7 @@ enum AuditAction {
   APPROVE_SUBSCRIPTION
   REVOKE_SUBSCRIPTION
   UPDATE_ROLE
+  MANAGE_LICENSE
 }
 
 model User {
@@ -44,8 +46,42 @@ model User {
 
   accounts           Account[]
   sessions           Session[]
+  licenses           License[]
   adminAuditLogs     AuditLog[]         @relation("AdminAuditLogs")
   targetAuditLogs    AuditLog[]         @relation("TargetAuditLogs")
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String?
+  price       Decimal   @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  licenses    License[]
+}
+
+model License {
+  id         String    @id @default(cuid())
+  userId     String
+  productId  String
+  isActive   Boolean   @default(true)
+  expiresAt  DateTime?
+  grantedBy  String?
+  grantedAt  DateTime  @default(now())
+  lastModifiedBy String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product    Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
 }
 
 model Account {

@@ -46,7 +46,7 @@ export const requireAdminAccess = async (requestHeaders: Headers): Promise<Admin
     },
   });
 
-  if (!admin || admin.role !== "ADMIN") {
+  if (!admin || (admin.role !== "ADMIN" && admin.role !== "MASTER")) {
     return {
       ok: false,
       reason: "FORBIDDEN",
