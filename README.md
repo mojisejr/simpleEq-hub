@@ -42,6 +42,16 @@ npm run dev
 ```bash
 npm run build
 npm run lint
+npm run test
+```
+
+## Phase 1 Nexus Foundation Operations
+
+หลัง apply migration ของ Prisma แล้ว ให้รันลำดับนี้เพื่อ seed product และ backfill license ของผู้ใช้ PRO เดิม:
+
+```bash
+npm run phase1:seed-products
+npm run phase1:backfill-pro-licenses
 ```
 
 ## Phase 4.2 Extension Identity Service Contract

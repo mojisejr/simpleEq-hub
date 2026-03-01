@@ -60,7 +60,7 @@ export default async function Home() {
             You have full access to all SimpleEq features. You can now close this window and return to the Chrome Extension.
           </p>
 
-          {user?.role === "ADMIN" && (
+          {(user?.role === "ADMIN" || user?.role === "MASTER") && (
             <Link 
               href="/admin" 
               className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"

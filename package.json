@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "phase1:seed-products": "node scripts/seed-products.mjs",
+    "phase1:backfill-pro-licenses": "node scripts/backfill-pro-licenses.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.1",

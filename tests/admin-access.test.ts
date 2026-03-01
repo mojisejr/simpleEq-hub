@@ -38,7 +38,7 @@ describe("requireAdminAccess", () => {
     expect(findUniqueMock).not.toHaveBeenCalled();
   });
 
-  it("returns FORBIDDEN when user role is not ADMIN", async () => {
+  it("returns FORBIDDEN when user role is neither ADMIN nor MASTER", async () => {
     getSessionMock.mockResolvedValue({
       user: {
         id: "user_1",
@@ -85,6 +85,34 @@ describe("requireAdminAccess", () => {
         email: "admin@simpleeq.dev",
         name: "Admin",
         role: "ADMIN",
+      },
+    });
+  });
+
+  it("returns admin profile when role is MASTER", async () => {
+    getSessionMock.mockResolvedValue({
+      user: {
+        id: "master_1",
+      },
+    });
+    findUniqueMock.mockResolvedValue({
+      id: "master_1",
+      email: "master@simpleeq.dev",
+      name: "Master",
+      role: "MASTER",
+    });
+
+    const { requireAdminAccess } = await import("@/lib/admin-access");
+
+    const result = await requireAdminAccess(new Headers());
+
+    expect(result).toEqual({
+      ok: true,
+      admin: {
+        id: "master_1",
+        email: "master@simpleeq.dev",
+        name: "Master",
+        role: "MASTER",
       },
     });
   });
