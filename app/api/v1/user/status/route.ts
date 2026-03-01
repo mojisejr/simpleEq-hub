@@ -9,6 +9,7 @@ import type { ApiErrorResponse, UserStatusResponse } from "@/types/api";
 const querySchema = z.object({
   userId: z.string().min(1).optional(),
   email: z.email().optional(),
+  product: z.string().min(1).optional(), // Defaults to 'simple-eq' for legacy calls
 });
 
 const defaultUpgradeLink = process.env.PRO_UPGRADE_LINK ?? null;
@@ -69,7 +70,9 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
     );
   }
 
-  const { userId, email } = parsedQuery.data;
+  const { userId, email, product: productSlug } = parsedQuery.data;
+  // Default to 'simple-eq' for legacy backward compatibility
+  const targetProductSlug = productSlug ?? "simple-eq";
 
   try {
     const session = await auth.api.getSession({
@@ -109,13 +112,32 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
         },
         select: {
           subscriptionStatus: true,
+          licenses: {
+            where: {
+              product: { slug: targetProductSlug },
+              isActive: true, // Must be active
+              OR: [
+                { expiresAt: null }, // Lifetime
+                { expiresAt: { gt: new Date() } }, // Not expired
+              ],
+            },
+            take: 1, // We only need 1 valid license
+            select: {
+              id: true,
+              expiresAt: true,
+            },
+          },
         },
       });
 
-      if (user?.subscriptionStatus === "PRO") {
+      // Priority 1: Check Specific License (The Robust Nexus Way)
+      if (user?.licenses && user.licenses.length > 0) {
+        status = "PRO";
+      } 
+      // Priority 2: Legacy Fallback (Only for 'simple-eq' for backward compatibility)
+      else if (targetProductSlug === "simple-eq" && user?.subscriptionStatus === "PRO") {
         status = "PRO";
       }
-
     }
 
     const response: UserStatusResponse = {
@@ -123,6 +145,8 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
       link: status === "FREE" ? defaultUpgradeLink : null,
       onboardingRequired: status === "FREE",
       onboardingLink: status === "FREE" ? defaultOnboardingLink : null,
+      // @ts-ignore - Extending response type for future client support
+      product: targetProductSlug,
     };
 
     return NextResponse.json(response, {
