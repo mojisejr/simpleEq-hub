@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { disconnectPrisma, prisma } from "./prisma-client.mjs";
 
 const run = async () => {
   const simpleEqProduct = await prisma.product.findUnique({
@@ -44,5 +42,5 @@ run()
     process.exitCode = 1;
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await disconnectPrisma();
   });

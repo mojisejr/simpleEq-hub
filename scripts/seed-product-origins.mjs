@@ -1,9 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { disconnectPrisma, prisma } from "./prisma-client.mjs";
 
 const CHROME_EXTENSION_PREFIX = "chrome-extension://";
 const EXTENSION_ID_REGEX = /^[a-p]{32}$/;
@@ -133,5 +131,5 @@ run()
     process.exitCode = 1;
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await disconnectPrisma();
   });
