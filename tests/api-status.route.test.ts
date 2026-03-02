@@ -161,7 +161,7 @@ describe("/api/v1/user/status route", () => {
       },
     });
 
-    const response = OPTIONS(request);
+    const response = await OPTIONS(request);
 
     expect(response.status).toBe(204);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
@@ -197,7 +197,7 @@ describe("/api/v1/user/status route", () => {
       },
     });
 
-    const response = OPTIONS(request);
+    const response = await OPTIONS(request);
     const body = await response.json();
 
     expect(response.status).toBe(403);

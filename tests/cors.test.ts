@@ -82,3 +82,48 @@ describe("createCorsHeaders", () => {
     expect(headers["Access-Control-Allow-Origin"]).toBe("null");
   });
 });
+
+describe("isOriginAllowedForProduct", () => {
+  afterEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+  });
+
+  it("allows origin from product extensionId", async () => {
+    vi.doMock("@/lib/prisma", () => ({
+      prisma: {
+        product: {
+          findUnique: vi.fn().mockResolvedValue({
+            extensionId: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            allowedOrigins: [],
+          }),
+        },
+      },
+    }));
+
+    const { isOriginAllowedForProduct } = await import("@/lib/http/cors");
+
+    await expect(
+      isOriginAllowedForProduct("chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "smart-ws"),
+    ).resolves.toBe(true);
+  });
+
+  it("rejects origin when product guard does not contain it", async () => {
+    vi.doMock("@/lib/prisma", () => ({
+      prisma: {
+        product: {
+          findUnique: vi.fn().mockResolvedValue({
+            extensionId: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            allowedOrigins: ["https://hub.example"],
+          }),
+        },
+      },
+    }));
+
+    const { isOriginAllowedForProduct } = await import("@/lib/http/cors");
+
+    await expect(
+      isOriginAllowedForProduct("chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "smart-ws"),
+    ).resolves.toBe(false);
+  });
+});

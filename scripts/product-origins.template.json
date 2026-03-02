@@ -1,0 +1,20 @@
+{
+  "products": [
+    {
+      "slug": "simple-eq",
+      "extensionId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "allowedOrigins": [
+        "http://localhost:3000",
+        "https://simple-eq-hub.vercel.app"
+      ]
+    },
+    {
+      "slug": "smart-ws",
+      "extensionId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "allowedOrigins": [
+        "http://localhost:3000",
+        "https://simple-eq-hub.vercel.app"
+      ]
+    }
+  ]
+}

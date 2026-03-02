@@ -1,17 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
-import { createCorsHeaders, isOriginAllowed } from "@/lib/http/cors";
+import { createCorsHeadersForProduct, isOriginAllowedForProduct } from "@/lib/http/cors";
 
-const createNoStoreHeaders = (origin: string | null): HeadersInit => ({
-  ...createCorsHeaders(origin),
+const createNoStoreHeaders = async (origin: string | null, productSlug?: string): Promise<HeadersInit> => ({
+  ...(await createCorsHeadersForProduct(origin, productSlug)),
   "Cache-Control": "no-store",
 });
 
-export const OPTIONS = (request: NextRequest): NextResponse => {
-  const origin = request.headers.get("origin");
+const getRequestProductSlug = (request: NextRequest): string | undefined => {
+  const product = request.nextUrl.searchParams.get("product")?.trim();
+  return product && product.length > 0 ? product : undefined;
+};
 
-  if (origin && !isOriginAllowed(origin)) {
+export const OPTIONS = async (request: NextRequest): Promise<NextResponse> => {
+  const origin = request.headers.get("origin");
+  const productSlug = getRequestProductSlug(request);
+
+  if (origin && !(await isOriginAllowedForProduct(origin, productSlug))) {
     return NextResponse.json(
       {
         error: "Origin not allowed",
@@ -19,21 +25,22 @@ export const OPTIONS = (request: NextRequest): NextResponse => {
       },
       {
         status: 403,
-        headers: createCorsHeaders(origin),
+        headers: await createCorsHeadersForProduct(origin, productSlug),
       },
     );
   }
 
   return new NextResponse(null, {
     status: 204,
-    headers: createCorsHeaders(origin),
+    headers: await createCorsHeadersForProduct(origin, productSlug),
   });
 };
 
 export const POST = async (request: NextRequest): Promise<NextResponse> => {
   const origin = request.headers.get("origin");
+  const productSlug = getRequestProductSlug(request);
 
-  if (origin && !isOriginAllowed(origin)) {
+  if (origin && !(await isOriginAllowedForProduct(origin, productSlug))) {
     return NextResponse.json(
       {
         error: "Origin not allowed",
@@ -41,7 +48,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       },
       {
         status: 403,
-        headers: createCorsHeaders(origin),
+        headers: await createCorsHeadersForProduct(origin, productSlug),
       },
     );
   }
@@ -57,7 +64,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       },
       {
         status: 200,
-        headers: createNoStoreHeaders(origin),
+        headers: await createNoStoreHeaders(origin, productSlug),
       },
     );
   } catch {
@@ -68,7 +75,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       },
       {
         status: 500,
-        headers: createNoStoreHeaders(origin),
+        headers: await createNoStoreHeaders(origin, productSlug),
       },
     );
   }

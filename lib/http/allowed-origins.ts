@@ -82,7 +82,7 @@ type ProductOriginSource = {
   allowedOrigins: string[];
 };
 
-const normalizeProductOrigins = (source: ProductOriginSource): string[] => {
+export const getNormalizedProductOrigins = (source: ProductOriginSource): string[] => {
   const extensionOrigins = source.extensionId ? extensionIdsToOrigins(source.extensionId) : [];
   const explicitOrigins = source.allowedOrigins
     .map((origin) => toAllowedOrigin(origin))
@@ -105,6 +105,6 @@ export const createProductOriginResolver = <TProduct extends ProductOriginSource
       return [];
     }
 
-    return normalizeProductOrigins(product);
+    return getNormalizedProductOrigins(product);
   };
 };
