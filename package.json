@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "phase1:seed-products": "node scripts/seed-products.mjs",
-    "phase1:backfill-pro-licenses": "node scripts/backfill-pro-licenses.mjs"
+    "phase1:backfill-pro-licenses": "node scripts/backfill-pro-licenses.mjs",
+    "phasec:seed-product-origins": "node scripts/seed-product-origins.mjs",
+    "phasec:apply-product-origins": "node scripts/seed-product-origins.mjs --apply"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.1",

@@ -58,6 +58,8 @@ model Product {
   description String?
   price       Decimal   @default(0)
   isActive    Boolean   @default(true)
+  extensionId String?   @unique
+  allowedOrigins String[] @default([])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

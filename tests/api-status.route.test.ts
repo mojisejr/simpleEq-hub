@@ -80,6 +80,7 @@ describe("/api/v1/user/status route", () => {
       link: null,
       onboardingRequired: false,
       onboardingLink: null,
+      product: "simple-eq",
     });
     expect(findFirstMock).toHaveBeenCalledWith({
       where: {
@@ -87,6 +88,18 @@ describe("/api/v1/user/status route", () => {
       },
       select: {
         subscriptionStatus: true,
+        licenses: {
+          where: {
+            product: { slug: "simple-eq" },
+            isActive: true,
+            OR: [{ expiresAt: null }, { expiresAt: { gt: expect.any(Date) } }],
+          },
+          take: 1,
+          select: {
+            id: true,
+            expiresAt: true,
+          },
+        },
       },
     });
   });
@@ -111,6 +124,7 @@ describe("/api/v1/user/status route", () => {
       link: "https://facebook.com/simple-eq-upgrade",
       onboardingRequired: true,
       onboardingLink: "http://localhost:3000/onboarding",
+      product: "simple-eq",
     });
   });
 
@@ -134,6 +148,7 @@ describe("/api/v1/user/status route", () => {
       link: "https://facebook.com/simple-eq-upgrade",
       onboardingRequired: true,
       onboardingLink: "http://localhost:3000/onboarding",
+      product: "simple-eq",
     });
   });
 
@@ -146,7 +161,7 @@ describe("/api/v1/user/status route", () => {
       },
     });
 
-    const response = OPTIONS(request);
+    const response = await OPTIONS(request);
 
     expect(response.status).toBe(204);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
@@ -182,7 +197,7 @@ describe("/api/v1/user/status route", () => {
       },
     });
 
-    const response = OPTIONS(request);
+    const response = await OPTIONS(request);
     const body = await response.json();
 
     expect(response.status).toBe(403);

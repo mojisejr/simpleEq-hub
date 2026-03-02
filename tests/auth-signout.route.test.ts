@@ -38,7 +38,7 @@ describe("/api/v1/auth/sign-out route", () => {
       },
     });
 
-    const response = OPTIONS(request);
+    const response = await OPTIONS(request);
 
     expect(response.status).toBe(204);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
