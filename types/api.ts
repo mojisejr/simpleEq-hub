@@ -6,6 +6,7 @@ export interface UserStatusResponse {
   link: string | null;
   onboardingRequired?: boolean;
   onboardingLink?: string | null;
+  product?: string;
 }
 
 export interface ApiErrorResponse {

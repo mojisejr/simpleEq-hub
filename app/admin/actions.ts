@@ -74,7 +74,16 @@ const manageLicenseSchema = z.object({
   note: z.string().optional(),
 });
 
-export const manageLicenseAction = async (prevState: any, formData: FormData) => {
+type ManageLicenseState = {
+  ok: boolean;
+  error?: "invalid_request" | "forbidden" | "product_not_found" | "internal_error";
+  message?: "success";
+};
+
+export const manageLicenseAction = async (
+  _prevState: ManageLicenseState | null,
+  formData: FormData,
+): Promise<ManageLicenseState> => {
   const parsed = manageLicenseSchema.safeParse({
     targetUserId: formData.get("targetUserId"),
     productSlug: formData.get("productSlug"),

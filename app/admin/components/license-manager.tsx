@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Shield, X, AlertTriangle, Key } from "lucide-react";
+import { Shield, X, AlertTriangle, Key } from "lucide-react";
 import { ConfirmationModal } from "./confirmation-modal";
 import { manageLicenseAction } from "../actions";
 import { cn } from "@/lib/utils";

@@ -145,7 +145,6 @@ export const GET = async (request: NextRequest): Promise<NextResponse<UserStatus
       link: status === "FREE" ? defaultUpgradeLink : null,
       onboardingRequired: status === "FREE",
       onboardingLink: status === "FREE" ? defaultOnboardingLink : null,
-      // @ts-ignore - Extending response type for future client support
       product: targetProductSlug,
     };
 
